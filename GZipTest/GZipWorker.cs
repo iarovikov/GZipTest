@@ -8,6 +8,11 @@ namespace GZipTest
     {
         public void Compress(FileInfo fileToCompress)
         {
+           this.Compress(fileToCompress, new FileInfo(fileToCompress.FullName + ".gz"));
+        }
+
+        public void Compress(FileInfo fileToCompress, FileInfo compressedFile)
+        {
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
                 if ((File.GetAttributes(fileToCompress.FullName) & FileAttributes.Hidden) == FileAttributes.Hidden
@@ -15,7 +20,7 @@ namespace GZipTest
                 {
                     throw new InvalidOperationException("File is hidden or already compressed");
                 }
-                using (FileStream outFile = File.Create(fileToCompress.FullName + ".gz"))
+                using (FileStream outFile = File.Create(compressedFile.FullName))
                 {
                     using (GZipStream gZipStream = new GZipStream(outFile,
                         CompressionMode.Compress))
