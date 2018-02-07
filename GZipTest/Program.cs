@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace GZipTest
 {
@@ -9,9 +10,15 @@ namespace GZipTest
             //TODO: input parameters validation
             var command = args[0];
             var inputFile = new FileInfo(args[1]);
-            var ouputFile = new FileInfo(args[2]);
-            
-            
+            //var ouputFile = new FileInfo(args[2]);
+
+            var gZipWorker = new GZipWorker();
+            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
+            {
+                gZipWorker.Compress(inputFile);
+            }
+
+            Console.ReadLine();
         }
     }
 }
