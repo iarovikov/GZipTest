@@ -10,6 +10,8 @@ namespace GZipTest
             var command = args[0];
             var inputFile = new FileInfo(args[1]);
             var ouputFile = new FileInfo(args[2]);
+            
+            
         }
     }
 }
