@@ -6,5 +6,6 @@ namespace GZipTest
     {
         void Compress(FileInfo fileToCompress);
         void Compress(FileInfo fileToCompress, FileInfo compressedFile);
+        void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile);
     }
 }
