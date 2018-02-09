@@ -13,19 +13,15 @@ namespace GZipTest
             //var ouputFile = new FileInfo(args[2]);
 
             var gZipWorker = new GZipWorker();
-            
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
                 gZipWorker.Compress(inputFile);
             }
-            
-            
+
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
                 gZipWorker.ParallelCompress(inputFile, new FileInfo("111.gz"));
             }
-            
-
             Console.ReadLine();
         }
     }

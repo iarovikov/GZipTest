@@ -43,7 +43,7 @@ namespace GZipTest
         {
             ValidateInputFile(fileToCompress);
             int numberOfThreads = 32;
-            byte[] buffer = new byte[fileToCompress.Length / numberOfThreads];
+            int bufferLength = (int)(fileToCompress.Length / numberOfThreads);
             IList<Thread> threads = new List<Thread>();
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
@@ -53,30 +53,22 @@ namespace GZipTest
                     {
                         for (int i = 0; i < numberOfThreads; i++)
                         {
-                            var thread = new Thread(Compress);
-                            thread.Start(i);
+                            var twcs = new ThreadWithCompressionState(inputStream, gZipStream, bufferLength, i);
+                            var thread = new Thread(twcs.Compress);
+                            thread.Start();
                             threads.Add(thread);
+                        }
 
-                            int numRead;
-                            while ((numRead = inputStream.Read(buffer, i*buffer.Length, buffer.Length)) != 0)
-                            {
-                                gZipStream.Write(buffer, 0, numRead);
-                            }
+                        foreach (var thread in threads)
+                        {
+                            thread.Join();
                         }
                     }
                 }
             }
-
-            foreach (var thread in threads)
-            {
-                thread.Join();
-            }
         }
 
-        private static void Compress(object i)
-        {
-            Console.WriteLine(i);
-        }
+
 
         public void Decompress(FileInfo fileToDecompress)
         {
