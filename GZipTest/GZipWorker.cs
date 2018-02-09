@@ -15,9 +15,9 @@ namespace GZipTest
 
         public void Compress(FileInfo fileToCompress, FileInfo compressedFile)
         {
+            ValidateInputFile(fileToCompress);
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
-                ValidateInputFile(fileToCompress);
                 using (FileStream outFile = File.Create(compressedFile.FullName))
                 {
                     using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
@@ -41,13 +41,30 @@ namespace GZipTest
 
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
         {
+            ValidateInputFile(fileToCompress);
             int numberOfThreads = 32;
+            byte[] buffer = new byte[fileToCompress.Length / numberOfThreads];
             IList<Thread> threads = new List<Thread>();
-            for (int i = 0; i < numberOfThreads; i++)
+            using (FileStream inputStream = fileToCompress.OpenRead())
             {
-                var thread = new Thread(Compress);
-                thread.Start(i);
-                threads.Add(thread);
+                using (FileStream outFile = File.Create(compressedFile.FullName))
+                {
+                    using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
+                    {
+                        for (int i = 0; i < numberOfThreads; i++)
+                        {
+                            var thread = new Thread(Compress);
+                            thread.Start(i);
+                            threads.Add(thread);
+
+                            int numRead;
+                            while ((numRead = inputStream.Read(buffer, i*buffer.Length, buffer.Length)) != 0)
+                            {
+                                gZipStream.Write(buffer, 0, numRead);
+                            }
+                        }
+                    }
+                }
             }
 
             foreach (var thread in threads)
