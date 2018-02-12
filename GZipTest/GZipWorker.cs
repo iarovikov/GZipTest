@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Threading;
 
 namespace GZipTest
 {
@@ -42,13 +40,15 @@ namespace GZipTest
         {
             const int BUFFER_SIZE = 64 * 1024;
             byte[] buffer = new byte[BUFFER_SIZE];
-            IList<Thread> threads = new List<Thread>();
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
                 using (FileStream outFile = File.Create(compressedFile.FullName))
                 {
                     using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
                     {
+                        // Producer-consumers
+                        // Producer reads file by chunks and saves them to queue.
+                        // Consumers take chunsk from queue and perform compression
                         int numRead;
                         while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
@@ -65,7 +65,5 @@ namespace GZipTest
         {
             throw new System.NotImplementedException();
         }
-
-
     }
 }
