@@ -15,14 +15,24 @@ namespace GZipTest
             var gZipWorker = new GZipWorker();
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
+                ValidateFileToCompress(inputFile);
                 gZipWorker.Compress(inputFile);
             }
 
-            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
-            {
-                gZipWorker.ParallelCompress(inputFile, new FileInfo("111.gz"));
-            }
+//            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
+//            {
+//                gZipWorker.ParallelCompress(inputFile, new FileInfo("111.gz"));
+//            }
             Console.ReadLine();
+        }
+
+        private static void ValidateFileToCompress(FileInfo fileToCompress)
+        {
+            if ((File.GetAttributes(fileToCompress.FullName) & FileAttributes.Hidden) == FileAttributes.Hidden
+                || fileToCompress.Extension == ".gz")
+            {
+                throw new InvalidOperationException("File is hidden or already compressed");
+            }
         }
     }
 }

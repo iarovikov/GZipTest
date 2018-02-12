@@ -15,7 +15,6 @@ namespace GZipTest
 
         public void Compress(FileInfo fileToCompress, FileInfo compressedFile)
         {
-            ValidateInputFile(fileToCompress);
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
                 using (FileStream outFile = File.Create(compressedFile.FullName))
@@ -24,7 +23,7 @@ namespace GZipTest
                     {
                         byte[] buffer = new byte[4096];
                         int numRead;
-                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) != 0)
+                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
                             gZipStream.Write(buffer, 0, numRead);
                         }
@@ -41,9 +40,8 @@ namespace GZipTest
 
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
         {
-            ValidateInputFile(fileToCompress);
-            int numberOfThreads = 32;
-            int bufferLength = (int)(fileToCompress.Length / numberOfThreads);
+            const int BUFFER_SIZE = 64 * 1024;
+            byte[] buffer = new byte[BUFFER_SIZE];
             IList<Thread> threads = new List<Thread>();
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
@@ -51,17 +49,10 @@ namespace GZipTest
                 {
                     using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
                     {
-                        for (int i = 0; i < numberOfThreads; i++)
+                        int numRead;
+                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
-                            var twcs = new ThreadWithCompressionState(inputStream, gZipStream, bufferLength, i);
-                            var thread = new Thread(twcs.Compress);
-                            thread.Start();
-                            threads.Add(thread);
-                        }
-
-                        foreach (var thread in threads)
-                        {
-                            thread.Join();
+                            gZipStream.Write(buffer, 0, numRead);
                         }
                     }
                 }
@@ -75,13 +66,6 @@ namespace GZipTest
             throw new System.NotImplementedException();
         }
 
-        private static void ValidateInputFile(FileInfo fileToCompress)
-        {
-            if ((File.GetAttributes(fileToCompress.FullName) & FileAttributes.Hidden) == FileAttributes.Hidden
-                || fileToCompress.Extension == ".gz")
-            {
-                throw new InvalidOperationException("File is hidden or already compressed");
-            }
-        }
+
     }
 }
