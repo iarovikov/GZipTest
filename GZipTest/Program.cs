@@ -19,11 +19,11 @@ namespace GZipTest
                 gZipWorker.Compress(inputFile);
             }
 
-//            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
-//            {
-//                gZipWorker.ParallelCompress(inputFile, new FileInfo("111.gz"));
-//            }
-            Console.ReadLine();
+            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
+            {
+                gZipWorker.ParallelCompress(inputFile, new FileInfo("111.gz"));
+            }
+            //Console.ReadLine();
         }
 
         private static void ValidateFileToCompress(FileInfo fileToCompress)

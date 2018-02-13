@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Threading;
+using System.Xml.Schema;
 
 namespace GZipTest
 {
     public class ChunkProducerConsumer : IDisposable
     {
         private readonly object @lock = new object();
-        private Thread[] _workers;
-        private Queue<byte[]> _chunkQueue = new Queue<byte[]>();
 
-        public ChunkProducerConsumer(int workerCount)
+        private readonly Thread[] _workers;
+
+        private readonly Queue<byte[]> _chunkQueue = new Queue<byte[]>();
+
+        private readonly Queue<byte[]> _result = new Queue<byte[]>();
+
+        public ChunkProducerConsumer(int workerCount, Queue<byte[]> result)
         {
             this._workers = new Thread[workerCount];
+            this._result = result;
 
             // Create and start a separate thread for each worker
             for (var i = 0; i < workerCount; i++)
@@ -62,9 +70,15 @@ namespace GZipTest
                 if (chunk == null)
                     return;
 
+                using (var compressedStream = new MemoryStream())
+                {
+                    using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+                    {
+                        zipStream.Write(chunk, 0, chunk.Length);
+                    }
 
-                //TODO: implement compression
-
+                    this._result.Enqueue(compressedStream.ToArray());
+                }
             }
         }
     }

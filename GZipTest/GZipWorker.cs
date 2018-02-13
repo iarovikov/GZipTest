@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 namespace GZipTest
 {
@@ -19,7 +21,7 @@ namespace GZipTest
                 {
                     using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
                     {
-                        byte[] buffer = new byte[4096];
+                        byte[] buffer = new byte[64 * 1024];
                         int numRead;
                         while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
@@ -44,22 +46,30 @@ namespace GZipTest
             {
                 using (FileStream outFile = File.Create(compressedFile.FullName))
                 {
-                    using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
+                    // Producer-consumers
+                    // Producer reads file by chunks and saves them to queue.
+                    // Consumers take chunsk from queue and perform compression
+                    var result = new Queue<byte[]>();
+                    var test = new Queue<byte[]>();
+
+                    using (ChunkProducerConsumer chunkProducerConsumer = new ChunkProducerConsumer(1, result))
                     {
-                        // Producer-consumers
-                        // Producer reads file by chunks and saves them to queue.
                         int numRead;
                         while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
-                            gZipStream.Write(buffer, 0, numRead);
+                            chunkProducerConsumer.Enqueue(buffer);
+                            buffer = new byte[BUFFER_SIZE];
                         }
-                        // Consumers take chunsk from queue and perform compression
+                    }
+
+                    while (result.Count > 0)
+                    {
+                        var chunk = result.Dequeue();
+                        outFile.Write(chunk, 0, chunk.Length);
                     }
                 }
             }
         }
-
-
 
         public void Decompress(FileInfo fileToDecompress)
         {
