@@ -48,12 +48,12 @@ namespace GZipTest
                     {
                         // Producer-consumers
                         // Producer reads file by chunks and saves them to queue.
-                        // Consumers take chunsk from queue and perform compression
                         int numRead;
                         while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
                             gZipStream.Write(buffer, 0, numRead);
                         }
+                        // Consumers take chunsk from queue and perform compression
                     }
                 }
             }
