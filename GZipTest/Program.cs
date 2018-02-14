@@ -21,9 +21,10 @@ namespace GZipTest
 
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
-                gZipWorker.ParallelCompress(inputFile, new FileInfo("111.gz"));
+                gZipWorker.ParallelCompress(inputFile, new FileInfo("compress.gz"));
             }
-            //Console.ReadLine();
+            gZipWorker.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("umcompressed.txt"));
+            Console.ReadLine();
         }
 
         private static void ValidateFileToCompress(FileInfo fileToCompress)

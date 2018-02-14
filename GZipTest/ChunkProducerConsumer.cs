@@ -17,9 +17,12 @@ namespace GZipTest
 
         private readonly Queue<byte[]> _result = new Queue<byte[]>();
 
-        public ChunkProducerConsumer(int workerCount, Queue<byte[]> result)
+        private readonly CompressionMode _compressionMode;
+
+        public ChunkProducerConsumer(int workerCount, CompressionMode compressionMode, Queue<byte[]> result)
         {
             this._workers = new Thread[workerCount];
+            this._compressionMode = compressionMode;
             this._result = result;
 
             // Create and start a separate thread for each worker
@@ -70,14 +73,31 @@ namespace GZipTest
                 if (chunk == null)
                     return;
 
-                using (var compressedStream = new MemoryStream())
+                if (this._compressionMode == CompressionMode.Compress)
                 {
-                    using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+                    using (var memoryStream = new MemoryStream())
                     {
-                        zipStream.Write(chunk, 0, chunk.Length);
-                    }
+                        using (var zipStream = new GZipStream(memoryStream, this._compressionMode))
+                        {
+                            zipStream.Write(chunk, 0, chunk.Length);
+                        }
 
-                    this._result.Enqueue(compressedStream.ToArray());
+                        this._result.Enqueue(memoryStream.ToArray());
+                    }
+                }
+                else if (this._compressionMode == CompressionMode.Decompress)
+                {
+                    using (var inStream = new MemoryStream(chunk))
+                    {
+                        using (var zipStream = new GZipStream(inStream, this._compressionMode))
+                        {
+                            using (var outStream = new MemoryStream())
+                            {
+                                outStream.Write(buffer, 0, chunk.Length);
+                            }
+                        }
+                        this._result.Enqueue(zipStream.ToArray());
+                    }
                 }
             }
         }

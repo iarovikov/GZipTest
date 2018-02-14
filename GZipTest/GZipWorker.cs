@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 
 namespace GZipTest
 {
@@ -50,30 +49,78 @@ namespace GZipTest
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
                     var result = new Queue<byte[]>();
-                    var test = new Queue<byte[]>();
-
-                    using (ChunkProducerConsumer chunkProducerConsumer = new ChunkProducerConsumer(1, result))
+                    using (var chunkProducerConsumer = new ChunkProducerConsumer(1, CompressionMode.Compress, result))
                     {
-                        int numRead;
-                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                        while (inputStream.Read(buffer, 0, buffer.Length) > 0)
                         {
                             chunkProducerConsumer.Enqueue(buffer);
                             buffer = new byte[BUFFER_SIZE];
                         }
                     }
 
-                    while (result.Count > 0)
+                    WriteOutFile(result, outFile);
+                }
+            }
+        }
+
+        public void Decompress(FileInfo fileToDecompress, FileInfo decompressedFile)
+        {
+            using (FileStream inputStream = fileToDecompress.OpenRead())
+            {
+                using (FileStream outFile = File.Create(decompressedFile.FullName))
+                {
+                    using (var gZipStream = new GZipStream(outFile, CompressionMode.Decompress))
                     {
-                        var chunk = result.Dequeue();
-                        outFile.Write(chunk, 0, chunk.Length);
+                        byte[] buffer = new byte[64 * 1024];
+                        int numRead;
+                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            gZipStream.Write(buffer, 0, numRead);
+                        }
+
+                        Console.WriteLine(
+                            "Decompressed {0} from {1} to {2} bytes.",
+                            fileToDecompress.Name,
+                            fileToDecompress.Length,
+                            outFile.Length);
                     }
                 }
             }
         }
 
-        public void Decompress(FileInfo fileToDecompress)
+        public void ParallelDecompress(FileInfo fileToDecompress, FileInfo decompressedFile)
         {
-            throw new System.NotImplementedException();
+            const int BUFFER_SIZE = 64 * 1024;
+            byte[] buffer = new byte[BUFFER_SIZE];
+            using (FileStream inputStream = fileToDecompress.OpenRead())
+            {
+                using (FileStream outFile = File.Create(decompressedFile.FullName))
+                {
+                    // Producer-consumers
+                    // Producer reads file by chunks and saves them to queue.
+                    // Consumers take chunsk from queue and perform compression
+                    var result = new Queue<byte[]>();
+                    using (var chunkProducerConsumer = new ChunkProducerConsumer(1, CompressionMode.Decompress, result))
+                    {
+                        while (inputStream.Read(buffer, 0, buffer.Length) > 0)
+                        {
+                            chunkProducerConsumer.Enqueue(buffer);
+                            buffer = new byte[BUFFER_SIZE];
+                        }
+                    }
+
+                    WriteOutFile(result, outFile);
+                }
+            }
+        }
+
+        private static void WriteOutFile(Queue<byte[]> result, FileStream outFile)
+        {
+            while (result.Count > 0)
+            {
+                var chunk = result.Dequeue();
+                outFile.Write(chunk, 0, chunk.Length);
+            }
         }
     }
 }
