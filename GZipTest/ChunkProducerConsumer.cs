@@ -89,14 +89,20 @@ namespace GZipTest
                 {
                     using (var inStream = new MemoryStream(chunk))
                     {
-                        using (var zipStream = new GZipStream(inStream, this._compressionMode))
+                        using (var outStream = new MemoryStream())
                         {
-                            using (var outStream = new MemoryStream())
+                            using (var zipStream = new GZipStream(inStream, this._compressionMode))
                             {
-                                outStream.Write(buffer, 0, chunk.Length);
+                                byte[] buffer = new byte[chunk.Length];
+                                int numRead;
+                                while ((numRead = zipStream.Read(buffer, 0, buffer.Length)) > 0)
+                                {
+                                    outStream.Write(buffer, 0, numRead);
+                                }
                             }
+
+                            this._result.Enqueue(outStream.ToArray());
                         }
-                        this._result.Enqueue(zipStream.ToArray());
                     }
                 }
             }
