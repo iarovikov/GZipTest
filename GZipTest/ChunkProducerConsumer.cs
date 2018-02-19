@@ -100,7 +100,6 @@ namespace GZipTest
                                     outStream.Write(buffer, 0, numRead);
                                 }
                             }
-
                             this._result.Enqueue(outStream.ToArray());
                         }
                     }
