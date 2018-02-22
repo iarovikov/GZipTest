@@ -7,6 +7,8 @@ namespace GZipTest
 {
     public class GZipWorker : ICompressor, IDecompressor
     {
+        const int BUFFER_SIZE = 100000;
+
         public void Compress(FileInfo fileToCompress)
         {
             this.Compress(fileToCompress, new FileInfo(fileToCompress.FullName + ".gz"));
@@ -20,7 +22,7 @@ namespace GZipTest
                 {
                     using (GZipStream gZipStream = new GZipStream(outFile, CompressionMode.Compress))
                     {
-                        byte[] buffer = new byte[64 * 1024];
+                        byte[] buffer = new byte[BUFFER_SIZE];
                         int numRead;
                         while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
@@ -39,7 +41,6 @@ namespace GZipTest
 
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
         {
-            const int BUFFER_SIZE = 64 * 1024;
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
@@ -71,7 +72,7 @@ namespace GZipTest
                 {
                     using (var gZipStream = new GZipStream(outFile, CompressionMode.Decompress))
                     {
-                        byte[] buffer = new byte[64 * 1024];
+                        byte[] buffer = new byte[BUFFER_SIZE];
                         int numRead;
                         while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                         {
@@ -90,7 +91,6 @@ namespace GZipTest
 
         public void ParallelDecompress(FileInfo fileToDecompress, FileInfo decompressedFile)
         {
-            const int BUFFER_SIZE = 64 * 1024;
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToDecompress.OpenRead())
             {
@@ -102,10 +102,17 @@ namespace GZipTest
                     var result = new Queue<byte[]>();
                     using (var chunkProducerConsumer = new ChunkProducerConsumer(1, CompressionMode.Decompress, result))
                     {
-                        while (inputStream.Read(buffer, 0, buffer.Length) > 0)
+                        byte[] size = new byte[4];
+                        //                        inputStream.Read(buffer, 0, 4);
+                        //                        int sizeOfFirstChunk = BitConverter.ToInt32(buffer, 0);
+                        //                        buffer = new byte[sizeOfFirstChunk + 4];
+                        //                        inputStream.Position = 0;
+                        while (inputStream.Read(size, 0, size.Length) > 0)
                         {
-                            chunkProducerConsumer.Enqueue(buffer);
-                            buffer = new byte[BUFFER_SIZE];
+                            int s = BitConverter.ToInt32(size, 0);
+                            byte[] data = new byte[s];
+                            inputStream.Read(data, 0, s);
+                            chunkProducerConsumer.Enqueue(data);
                         }
                     }
 

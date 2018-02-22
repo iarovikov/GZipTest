@@ -19,11 +19,16 @@ namespace GZipTest
 //                gZipWorker.Compress(inputFile);
 //            }
 
-//            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
-//            {
-//                gZipWorker.ParallelCompress(inputFile, new FileInfo("compress.gz"));
-//            }
-            gZipWorker.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"));
+            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
+            {
+                gZipWorker.ParallelCompress(inputFile, new FileInfo("compress.gz"));
+            }
+
+            if (string.Equals(command, "decompress", StringComparison.InvariantCultureIgnoreCase))
+            {
+                gZipWorker.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"));
+            }
+
             Console.ReadLine();
         }
 

@@ -75,18 +75,28 @@ namespace GZipTest
 
                 if (this._compressionMode == CompressionMode.Compress)
                 {
+                    byte[] size = new byte[4];
                     using (var memoryStream = new MemoryStream())
                     {
                         using (var zipStream = new GZipStream(memoryStream, this._compressionMode))
                         {
                             zipStream.Write(chunk, 0, chunk.Length);
                         }
-
-                        this._result.Enqueue(memoryStream.ToArray());
+                        byte[] data = memoryStream.ToArray();
+                        size = BitConverter.GetBytes(data.Length);
+                        byte[] result = new byte[size.Length + data.Length];
+                        Buffer.BlockCopy(size, 0, result, 0, size.Length);
+                        Buffer.BlockCopy(data, 0, result, size.Length, data.Length);
+                        this._result.Enqueue(result);
                     }
                 }
                 else if (this._compressionMode == CompressionMode.Decompress)
                 {
+//                    byte[] size = new byte[4];
+//                    Buffer.BlockCopy(chunk, 0, size, 0, size.Length);
+//                    int s = BitConverter.ToInt32(size, 0);
+//                    byte[] data = new byte[s];
+//                    Buffer.BlockCopy(chunk, 4, data, 0, s);
                     using (var inStream = new MemoryStream(chunk))
                     {
                         using (var outStream = new MemoryStream())
@@ -100,6 +110,7 @@ namespace GZipTest
                                     outStream.Write(buffer, 0, numRead);
                                 }
                             }
+
                             this._result.Enqueue(outStream.ToArray());
                         }
                     }
