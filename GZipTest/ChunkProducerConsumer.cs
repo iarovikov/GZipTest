@@ -82,6 +82,7 @@ namespace GZipTest
                         {
                             zipStream.Write(chunk, 0, chunk.Length);
                         }
+
                         byte[] data = memoryStream.ToArray();
                         size = BitConverter.GetBytes(data.Length);
                         byte[] result = new byte[size.Length + data.Length];
@@ -92,11 +93,11 @@ namespace GZipTest
                 }
                 else if (this._compressionMode == CompressionMode.Decompress)
                 {
-//                    byte[] size = new byte[4];
-//                    Buffer.BlockCopy(chunk, 0, size, 0, size.Length);
-//                    int s = BitConverter.ToInt32(size, 0);
-//                    byte[] data = new byte[s];
-//                    Buffer.BlockCopy(chunk, 4, data, 0, s);
+                    //                    byte[] size = new byte[4];
+                    //                    Buffer.BlockCopy(chunk, 0, size, 0, size.Length);
+                    //                    int s = BitConverter.ToInt32(size, 0);
+                    //                    byte[] data = new byte[s];
+                    //                    Buffer.BlockCopy(chunk, 4, data, 0, s);
                     using (var inStream = new MemoryStream(chunk))
                     {
                         using (var outStream = new MemoryStream())

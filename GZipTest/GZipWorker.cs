@@ -7,7 +7,7 @@ namespace GZipTest
 {
     public class GZipWorker : ICompressor, IDecompressor
     {
-        const int BUFFER_SIZE = 100000;
+        const int BUFFER_SIZE = 32 * 1024;
 
         public void Compress(FileInfo fileToCompress)
         {
@@ -50,7 +50,7 @@ namespace GZipTest
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
                     var result = new Queue<byte[]>();
-                    using (var chunkProducerConsumer = new ChunkProducerConsumer(1, CompressionMode.Compress, result))
+                    using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Compress, result))
                     {
                         while (inputStream.Read(buffer, 0, buffer.Length) > 0)
                         {
@@ -100,7 +100,7 @@ namespace GZipTest
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
                     var result = new Queue<byte[]>();
-                    using (var chunkProducerConsumer = new ChunkProducerConsumer(1, CompressionMode.Decompress, result))
+                    using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Decompress, result))
                     {
                         byte[] size = new byte[4];
                         //                        inputStream.Read(buffer, 0, 4);
