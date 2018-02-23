@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 namespace GZipTest
 {
@@ -37,8 +38,7 @@ namespace GZipTest
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToDecompress.OpenRead())
             {
-                using (FileStream outFile = File.Create(decompressedFile.FullName))
-                {
+
                     // Producer-consumers
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
@@ -59,7 +59,17 @@ namespace GZipTest
                         }
                     }
 
-                    WriteOutFile(result, outFile);
+                WriteOutputFile(decompressedFile, result);
+            }
+        }
+
+         private static void WriteOutputFile(FileInfo compressedFile, List<Chunk> result)
+        {
+            using (FileStream outFile = File.Create(compressedFile.FullName))
+            {
+                foreach (var chunk in result.OrderBy(x => x.Id))
+                {
+                    outFile.Write(chunk.Data, 0, chunk.Data.Length);
                 }
             }
         }

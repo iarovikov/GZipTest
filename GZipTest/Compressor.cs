@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 namespace GZipTest
 {
@@ -42,22 +43,30 @@ namespace GZipTest
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
-                using (FileStream outFile = File.Create(compressedFile.FullName))
+                // Producer-consumers
+                // Producer reads file by chunks and saves them to queue.
+                // Consumers take chunsk from queue and perform compression
+                var result = new List<Chunk>();
+                using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Compress, result))
                 {
-                    // Producer-consumers
-                    // Producer reads file by chunks and saves them to queue.
-                    // Consumers take chunsk from queue and perform compression
-                    var result = new List<Chunk>();
-                    using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Compress, result))
+                    while (inputStream.Read(buffer, 0, buffer.Length) > 0)
                     {
-                        while (inputStream.Read(buffer, 0, buffer.Length) > 0)
-                        {
-                            chunkProducerConsumer.Enqueue(buffer);
-                            buffer = new byte[BUFFER_SIZE];
-                        }
+                        chunkProducerConsumer.Enqueue(buffer);
+                        buffer = new byte[BUFFER_SIZE];
                     }
+                }
 
-                    WriteOutFile(result, outFile);
+                WriteOutputFile(compressedFile, result);
+            }
+        }
+
+        private static void WriteOutputFile(FileInfo compressedFile, List<Chunk> result)
+        {
+            using (FileStream outFile = File.Create(compressedFile.FullName))
+            {
+                foreach (var chunk in result.OrderBy(x => x.Id))
+                {
+                    outFile.Write(chunk.Data, 0, chunk.Data.Length);
                 }
             }
         }
