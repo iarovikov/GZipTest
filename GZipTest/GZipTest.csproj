@@ -39,6 +39,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Chunk.cs" />
+    <Compile Include="Compressor.cs" />
+    <Compile Include="Decompressor.cs" />
     <Compile Include="GZipWorker.cs" />
     <Compile Include="ICompressor.cs" />
     <Compile Include="IDecompressor.cs" />

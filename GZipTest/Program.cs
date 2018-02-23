@@ -13,7 +13,7 @@ namespace GZipTest
             var inputFile = new FileInfo(args[1]);
             //var ouputFile = new FileInfo(args[2]);
 
-            var gZipWorker = new GZipWorker();
+
 //            if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
 //            {
 //                ValidateFileToCompress(inputFile);
@@ -24,7 +24,8 @@ namespace GZipTest
 
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
-                gZipWorker.ParallelCompress(inputFile, new FileInfo("compress.gz"));
+                var compressor = new Compressor();
+                compressor.ParallelCompress(inputFile, new FileInfo("compress.gz"));
             }
             sw.Stop();
             Console.WriteLine("Elapsed={0}", sw.Elapsed);
@@ -32,7 +33,8 @@ namespace GZipTest
 
             if (string.Equals(command, "decompress", StringComparison.InvariantCultureIgnoreCase))
             {
-                gZipWorker.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"));
+                var decompressor = new Decompressor();
+                decompressor.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"));
             }
 
             Console.ReadLine();

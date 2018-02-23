@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.Remoting.Messaging;
-
-namespace GZipTest
+﻿namespace GZipTest
 {
     public class Chunk
     {

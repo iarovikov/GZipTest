@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
-using System.Xml.Schema;
 
 namespace GZipTest
 {
@@ -95,11 +94,6 @@ namespace GZipTest
                 }
                 else if (this._compressionMode == CompressionMode.Decompress)
                 {
-                    //                    byte[] size = new byte[4];
-                    //                    Buffer.BlockCopy(chunk, 0, size, 0, size.Length);
-                    //                    int s = BitConverter.ToInt32(size, 0);
-                    //                    byte[] data = new byte[s];
-                    //                    Buffer.BlockCopy(chunk, 4, data, 0, s);
                     using (var inStream = new MemoryStream(chunk))
                     {
                         using (var outStream = new MemoryStream())
