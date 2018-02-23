@@ -15,11 +15,11 @@ namespace GZipTest
 
         private readonly Queue<byte[]> _chunkQueue = new Queue<byte[]>();
 
-        private readonly Queue<byte[]> _result = new Queue<byte[]>();
+        private readonly IList<Chunk> _result = new List<Chunk>();
 
         private readonly CompressionMode _compressionMode;
 
-        public ChunkProducerConsumer(int workerCount, CompressionMode compressionMode, Queue<byte[]> result)
+        public ChunkProducerConsumer(int workerCount, CompressionMode compressionMode, IList<Chunk> result)
         {
             this._workers = new Thread[workerCount];
             this._compressionMode = compressionMode;
@@ -57,6 +57,7 @@ namespace GZipTest
 
         private void Consume()
         {
+            int index = 0;
             while (true)
             {
                 byte[] chunk;
@@ -68,6 +69,7 @@ namespace GZipTest
                     }
 
                     chunk = this._chunkQueue.Dequeue();
+                    Interlocked.Increment(ref index);
                 }
 
                 if (chunk == null)
@@ -88,7 +90,7 @@ namespace GZipTest
                         byte[] result = new byte[size.Length + data.Length];
                         Buffer.BlockCopy(size, 0, result, 0, size.Length);
                         Buffer.BlockCopy(data, 0, result, size.Length, data.Length);
-                        this._result.Enqueue(result);
+                        this._result.Add(new Chunk(index, result));
                     }
                 }
                 else if (this._compressionMode == CompressionMode.Decompress)
@@ -112,10 +114,12 @@ namespace GZipTest
                                 }
                             }
 
-                            this._result.Enqueue(outStream.ToArray());
+                            this._result.Add(new Chunk(index, outStream.ToArray()));
                         }
                     }
                 }
+
+//                }
             }
         }
     }

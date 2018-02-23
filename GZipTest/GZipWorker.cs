@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 namespace GZipTest
 {
@@ -39,31 +40,6 @@ namespace GZipTest
             }
         }
 
-        public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
-        {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            using (FileStream inputStream = fileToCompress.OpenRead())
-            {
-                using (FileStream outFile = File.Create(compressedFile.FullName))
-                {
-                    // Producer-consumers
-                    // Producer reads file by chunks and saves them to queue.
-                    // Consumers take chunsk from queue and perform compression
-                    var result = new Queue<byte[]>();
-                    using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Compress, result))
-                    {
-                        while (inputStream.Read(buffer, 0, buffer.Length) > 0)
-                        {
-                            chunkProducerConsumer.Enqueue(buffer);
-                            buffer = new byte[BUFFER_SIZE];
-                        }
-                    }
-
-                    WriteOutFile(result, outFile);
-                }
-            }
-        }
-
         public void Decompress(FileInfo fileToDecompress, FileInfo decompressedFile)
         {
             using (FileStream inputStream = fileToDecompress.OpenRead())
@@ -89,6 +65,31 @@ namespace GZipTest
             }
         }
 
+        public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
+        {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            using (FileStream inputStream = fileToCompress.OpenRead())
+            {
+                using (FileStream outFile = File.Create(compressedFile.FullName))
+                {
+                    // Producer-consumers
+                    // Producer reads file by chunks and saves them to queue.
+                    // Consumers take chunsk from queue and perform compression
+                    var result = new List<Chunk>();
+                    using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Compress, result))
+                    {
+                        while (inputStream.Read(buffer, 0, buffer.Length) > 0)
+                        {
+                            chunkProducerConsumer.Enqueue(buffer);
+                            buffer = new byte[BUFFER_SIZE];
+                        }
+                    }
+
+                    WriteOutFile(result, outFile);
+                }
+            }
+        }
+
         public void ParallelDecompress(FileInfo fileToDecompress, FileInfo decompressedFile)
         {
             byte[] buffer = new byte[BUFFER_SIZE];
@@ -99,8 +100,8 @@ namespace GZipTest
                     // Producer-consumers
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
-                    var result = new Queue<byte[]>();
-                    using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Decompress, result))
+                    var result = new List<Chunk>();
+                    using (var chunkProducerConsumer = new ChunkProducerConsumer(8, CompressionMode.Decompress, result))
                     {
                         byte[] size = new byte[4];
                         //                        inputStream.Read(buffer, 0, 4);
@@ -121,13 +122,17 @@ namespace GZipTest
             }
         }
 
-        private static void WriteOutFile(Queue<byte[]> result, FileStream outFile)
+        private static void WriteOutFile(IList<Chunk> result, FileStream outFile)
         {
-            while (result.Count > 0)
+            foreach (var chunk in result.OrderBy(x=>x.Id))
             {
-                var chunk = result.Dequeue();
-                outFile.Write(chunk, 0, chunk.Length);
+                outFile.Write(chunk.Data, 0, chunk.Data.Length);
             }
+//            while (result.Count > 0)
+//            {
+//                var chunk = result.Dequeue();
+//
+//            }
         }
     }
 }

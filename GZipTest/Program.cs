@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace GZipTest
@@ -18,15 +19,20 @@ namespace GZipTest
 //                ValidateFileToCompress(inputFile);
 //                gZipWorker.Compress(inputFile);
 //            }
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
                 gZipWorker.ParallelCompress(inputFile, new FileInfo("compress.gz"));
             }
+            sw.Stop();
+            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+
 
             if (string.Equals(command, "decompress", StringComparison.InvariantCultureIgnoreCase))
             {
-                gZipWorker.ParallelDecompress(new FileInfo("compress_1.gz"), new FileInfo("uncompressed.txt"));
+                gZipWorker.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"));
             }
 
             Console.ReadLine();
