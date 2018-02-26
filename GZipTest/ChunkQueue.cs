@@ -10,39 +10,17 @@ namespace GZipTest
     {
         private readonly object @lock = new object();
 
-        private readonly Thread[] _workers;
+        //private readonly Thread[] _workers;
 
         private readonly Queue<byte[]> _chunkQueue = new Queue<byte[]>();
 
         //private readonly IList<Chunk> _result = new List<Chunk>();
 
-        private readonly CompressionMode _compressionMode;
-
-        public ChunkQueue(int workerCount, CompressionMode compressionMode, IList<Chunk> result)
-        {
-            this._workers = new Thread[workerCount];
-            this._compressionMode = compressionMode;
-            this._result = result;
-
-            // Create and start a separate thread for each worker
-            for (var i = 0; i < workerCount; i++)
-            {
-                (this._workers[i] = new Thread(this.Consume)).Start();
-            }
-        }
+        //private readonly CompressionMode _compressionMode;
 
         public void Dispose()
         {
-            // Enqueue one null task per worker to make each exit.
-            foreach (Thread worker in this._workers)
-            {
-                this.Enqueue(null);
-            }
-
-            foreach (Thread worker in this._workers)
-            {
-                worker.Join();
-            }
+            this.Enqueue(null);
         }
 
         public void Enqueue(byte[] chunk)

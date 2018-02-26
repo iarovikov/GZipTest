@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 
 namespace GZipTest
 {
@@ -38,26 +39,21 @@ namespace GZipTest
             }
         }
 
-        private readonly int numberOfWorkers;
+        private Thread[] _workers;
+        private int _numberOfWorkers;
+
         public Compressor(int numberOfWorkers)
         {
-            this.numberOfWorkers = numberOfWorkers;
         }
 
-        private void Read(FileInfo inputFile)
+        public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile, int numberOfWorkers)
         {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            using (FileStream inputStream = inputFile.OpenRead())
+            // Create and start a separate thread for each worker
+            for (var i = 0; i < numberOfWorkers; i++)
             {
-                using (var chinkQueue = new ChunkQueue(this.numberOfWorkers, CompressionMode.Compress))
-                {
-
-                }
+                (this._workers[i] = new Thread(this.CompressChunk)).Start();
             }
-        }
 
-        public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
-        {
 
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToCompress.OpenRead())
@@ -66,7 +62,7 @@ namespace GZipTest
                 // Producer reads file by chunks and saves them to queue.
                 // Consumers take chunsk from queue and perform compression
                 var result = new List<Chunk>();
-                using (var chunkProducerConsumer = new ChunkQueue(2, CompressionMode.Compress, result))
+                using (var chunkProducerConsumer = new ChunkQueue())
                 {
                     while (inputStream.Read(buffer, 0, buffer.Length) > 0)
                     {
@@ -77,6 +73,29 @@ namespace GZipTest
 
                 WriteOutputFile(compressedFile, result);
             }
+        }
+
+        private void Read(FileInfo inputFile)
+        {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            using (FileStream inputStream = inputFile.OpenRead())
+            {
+                using (var chinkQueue = new ChunkQueue())
+                {
+                    int numRead = 0;
+                    while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        byte[] chunk = new byte[numRead];
+                        Buffer.BlockCopy(buffer, 0, chunk, 0, numRead);
+                        chinkQueue.Enqueue(chunk);
+                    }
+                }
+            }
+        }
+
+        private void CompressChunk()
+        {
+
         }
 
         private static void WriteOutputFile(FileInfo compressedFile, List<Chunk> result)
