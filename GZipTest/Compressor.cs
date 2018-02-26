@@ -39,19 +39,13 @@ namespace GZipTest
             }
         }
 
-        private Thread[] _workers;
-        private int _numberOfWorkers;
-
-        public Compressor(int numberOfWorkers)
-        {
-        }
-
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile, int numberOfWorkers)
         {
+            Thread[] workers = new Thread[numberOfWorkers];
             // Create and start a separate thread for each worker
             for (var i = 0; i < numberOfWorkers; i++)
             {
-                (this._workers[i] = new Thread(this.CompressChunk)).Start();
+                (workers[i] = new Thread(this.CompressChunk)).Start();
             }
 
             byte[] buffer = new byte[BUFFER_SIZE];

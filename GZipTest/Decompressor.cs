@@ -43,21 +43,21 @@ namespace GZipTest
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
                     var result = new List<Chunk>();
-                    using (var chunkProducerConsumer = new ChunkQueue(8, CompressionMode.Decompress, result))
-                    {
-                        byte[] size = new byte[4];
-                        //                        inputStream.Read(buffer, 0, 4);
-                        //                        int sizeOfFirstChunk = BitConverter.ToInt32(buffer, 0);
-                        //                        buffer = new byte[sizeOfFirstChunk + 4];
-                        //                        inputStream.Position = 0;
-                        while (inputStream.Read(size, 0, size.Length) > 0)
-                        {
-                            int s = BitConverter.ToInt32(size, 0);
-                            byte[] data = new byte[s];
-                            inputStream.Read(data, 0, s);
-                            chunkProducerConsumer.Enqueue(data);
-                        }
-                    }
+//                    using (var chunkProducerConsumer = new ChunkQueue(8, CompressionMode.Decompress, result))
+//                    {
+//                        byte[] size = new byte[4];
+//                        //                        inputStream.Read(buffer, 0, 4);
+//                        //                        int sizeOfFirstChunk = BitConverter.ToInt32(buffer, 0);
+//                        //                        buffer = new byte[sizeOfFirstChunk + 4];
+//                        //                        inputStream.Position = 0;
+//                        while (inputStream.Read(size, 0, size.Length) > 0)
+//                        {
+//                            int s = BitConverter.ToInt32(size, 0);
+//                            byte[] data = new byte[s];
+//                            inputStream.Read(data, 0, s);
+//                            chunkProducerConsumer.Enqueue(data);
+//                        }
+//                    }
 
                 WriteOutputFile(decompressedFile, result);
             }
