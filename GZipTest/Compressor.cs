@@ -38,8 +38,27 @@ namespace GZipTest
             }
         }
 
+        private readonly int numberOfWorkers;
+        public Compressor(int numberOfWorkers)
+        {
+            this.numberOfWorkers = numberOfWorkers;
+        }
+
+        private void Read(FileInfo inputFile)
+        {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            using (FileStream inputStream = inputFile.OpenRead())
+            {
+                using (var chinkQueue = new ChunkQueue(this.numberOfWorkers, CompressionMode.Compress))
+                {
+
+                }
+            }
+        }
+
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile)
         {
+
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
@@ -47,7 +66,7 @@ namespace GZipTest
                 // Producer reads file by chunks and saves them to queue.
                 // Consumers take chunsk from queue and perform compression
                 var result = new List<Chunk>();
-                using (var chunkProducerConsumer = new ChunkProducerConsumer(2, CompressionMode.Compress, result))
+                using (var chunkProducerConsumer = new ChunkQueue(2, CompressionMode.Compress, result))
                 {
                     while (inputStream.Read(buffer, 0, buffer.Length) > 0)
                     {

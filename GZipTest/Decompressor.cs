@@ -43,7 +43,7 @@ namespace GZipTest
                     // Producer reads file by chunks and saves them to queue.
                     // Consumers take chunsk from queue and perform compression
                     var result = new List<Chunk>();
-                    using (var chunkProducerConsumer = new ChunkProducerConsumer(8, CompressionMode.Decompress, result))
+                    using (var chunkProducerConsumer = new ChunkQueue(8, CompressionMode.Decompress, result))
                     {
                         byte[] size = new byte[4];
                         //                        inputStream.Read(buffer, 0, 4);

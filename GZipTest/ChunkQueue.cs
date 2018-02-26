@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace GZipTest
 {
-    public class ChunkProducerConsumer : IDisposable
+    public class ChunkQueue : IDisposable
     {
         private readonly object @lock = new object();
 
@@ -14,11 +14,11 @@ namespace GZipTest
 
         private readonly Queue<byte[]> _chunkQueue = new Queue<byte[]>();
 
-        private readonly IList<Chunk> _result = new List<Chunk>();
+        //private readonly IList<Chunk> _result = new List<Chunk>();
 
         private readonly CompressionMode _compressionMode;
 
-        public ChunkProducerConsumer(int workerCount, CompressionMode compressionMode, IList<Chunk> result)
+        public ChunkQueue(int workerCount, CompressionMode compressionMode, IList<Chunk> result)
         {
             this._workers = new Thread[workerCount];
             this._compressionMode = compressionMode;
