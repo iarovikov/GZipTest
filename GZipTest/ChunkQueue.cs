@@ -10,20 +10,27 @@ namespace GZipTest
     {
         private readonly object @lock = new object();
 
-        //private readonly Thread[] _workers;
+        private readonly Queue<Chunk> _chunkQueue = new Queue<Chunk>();
 
-        private readonly Queue<byte[]> _chunkQueue = new Queue<byte[]>();
-
-        //private readonly IList<Chunk> _result = new List<Chunk>();
-
-        //private readonly CompressionMode _compressionMode;
+        private int _chunkId;
 
         public void Dispose()
         {
-            this.Enqueue(null);
+            this.Enqueue((Chunk)null);
         }
 
-        public void Enqueue(byte[] chunk)
+        public void Enqueue(byte[] byteChunk)
+        {
+            lock (this.@lock)
+            {
+                var chunk = new Chunk(this._chunkId, byteChunk);
+                this._chunkQueue.Enqueue(chunk);
+                Interlocked.Increment(ref this._chunkId);
+                Monitor.PulseAll(this.@lock);
+            }
+        }
+
+        public void Enqueue(Chunk chunk)
         {
             lock (this.@lock)
             {

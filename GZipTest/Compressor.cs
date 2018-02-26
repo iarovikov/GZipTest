@@ -54,7 +54,6 @@ namespace GZipTest
                 (this._workers[i] = new Thread(this.CompressChunk)).Start();
             }
 
-
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = fileToCompress.OpenRead())
             {
