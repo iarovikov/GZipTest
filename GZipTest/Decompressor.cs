@@ -74,7 +74,7 @@ namespace GZipTest
 
             while ((inputChunk = this.inputQueue.Dequeue()) != null)
             {
-                using (var memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream(inputChunk.Data))
                 {
                     using (var zipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
                     {
