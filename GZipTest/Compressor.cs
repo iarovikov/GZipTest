@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 
 namespace GZipTest
@@ -40,6 +41,7 @@ namespace GZipTest
         }
 
         private ChunkQueue inputQueue = new ChunkQueue();
+
         private ChunkQueue outputQueue = new ChunkQueue();
 
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile, int numberOfWorkers)
@@ -53,22 +55,7 @@ namespace GZipTest
 
             this.Read(fileToCompress);
 
-            byte[] buffer = new byte[BUFFER_SIZE];
-            using (FileStream inputStream = fileToCompress.OpenRead())
-            {
-                // Producer-consumers
-                // Producer reads file by chunks and saves them to queue.
-                // Consumers take chunsk from queue and perform compression
-                var result = new List<Chunk>();
-
-                while (inputStream.Read(buffer, 0, buffer.Length) > 0)
-                {
-                    //chunkProducerConsumer.Enqueue(buffer);
-                    buffer = new byte[BUFFER_SIZE];
-                }
-
-                WriteOutputFile(compressedFile, result);
-            }
+            this.Write(compressedFile);
         }
 
         private void Read(FileInfo inputFile)
@@ -108,13 +95,15 @@ namespace GZipTest
             }
         }
 
-        private static void WriteOutputFile(FileInfo compressedFile, List<Chunk> result)
+        private void Write(FileInfo outputFile)
         {
-            using (FileStream outFile = File.Create(compressedFile.FullName))
+            using (FileStream outFile = File.Create(outputFile.FullName))
             {
-                foreach (var chunk in result.OrderBy(x => x.Id))
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                Chunk chunk;
+                while ((chunk = this.outputQueue.Dequeue()) != null)
                 {
-                    outFile.Write(chunk.Data, 0, chunk.Data.Length);
+                    binaryFormatter.Serialize(outFile, chunk);
                 }
             }
         }
