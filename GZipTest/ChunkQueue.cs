@@ -16,10 +16,9 @@ namespace GZipTest
 
         public void EnqueueNull()
         {
-            lock (this.@lock)
-            {
+
                 this.Enqueue((Chunk)null);
-            }
+
         }
 
         public void Enqueue(byte[] byteChunk)
@@ -37,7 +36,14 @@ namespace GZipTest
         {
             lock (this.@lock)
             {
+                //Check for valid chunk order
+                if (chunk != null && chunk.Id != this.chunkId)
+                {
+                    Monitor.Wait(this.@lock);
+                }
+
                 this.chunkQueue.Enqueue(chunk);
+                this.chunkId++;
                 Monitor.PulseAll(this.@lock);
             }
         }

@@ -108,6 +108,12 @@ namespace GZipTest
                     binaryFormatter.Serialize(outFile, chunk);
                 }
             }
+
+            Console.WriteLine(
+                "Compressed {0} to {1} bytes.",
+                outputFile.Name,
+                outputFile.Length);
+            Console.ReadLine();
         }
     }
 }
