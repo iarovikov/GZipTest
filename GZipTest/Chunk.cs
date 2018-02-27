@@ -1,5 +1,8 @@
-﻿namespace GZipTest
+﻿using System;
+
+namespace GZipTest
 {
+    [Serializable]
     public class Chunk
     {
         public int Id { get; }

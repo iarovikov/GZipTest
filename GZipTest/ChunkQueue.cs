@@ -28,7 +28,7 @@ namespace GZipTest
             {
                 var chunk = new Chunk(this.chunkId, byteChunk);
                 this.chunkQueue.Enqueue(chunk);
-                Interlocked.Increment(ref this.chunkId);
+                this.chunkId++;
                 Monitor.PulseAll(this.@lock);
             }
         }
@@ -50,7 +50,9 @@ namespace GZipTest
                 {
                     Monitor.Wait(this.@lock);
                 }
-                return this.chunkQueue.Dequeue();
+
+                var chunk = this.chunkQueue.Dequeue();
+                return chunk;
             }
         }
 

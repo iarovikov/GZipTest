@@ -25,7 +25,7 @@ namespace GZipTest
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
                 var compressor = new Compressor();
-                compressor.ParallelCompress(inputFile, new FileInfo("compress.gz"), 4);
+                compressor.ParallelCompress(inputFile, new FileInfo("compress.gz"), 1);
             }
             sw.Stop();
             Console.WriteLine("Elapsed={0}", sw.Elapsed);

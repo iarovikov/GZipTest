@@ -46,16 +46,16 @@ namespace GZipTest
 
         public void ParallelCompress(FileInfo fileToCompress, FileInfo compressedFile, int numberOfWorkers)
         {
+            this.Read(fileToCompress);
+
             Thread[] workers = new Thread[numberOfWorkers];
             // Create and start a separate thread for each worker
             for (var i = 0; i < numberOfWorkers; i++)
             {
                 (workers[i] = new Thread(this.CompressChunk)).Start();
             }
-
-            this.Read(fileToCompress);
-
-            this.Write(compressedFile);
+            var writeThread = new Thread(new ParameterizedThreadStart(this.Write));
+            writeThread.Start(compressedFile);
         }
 
         private void Read(FileInfo inputFile)
@@ -93,10 +93,12 @@ namespace GZipTest
                     this.outputQueue.Enqueue(outputChunk);
                 }
             }
+            this.outputQueue.Finish();
         }
 
-        private void Write(FileInfo outputFile)
+        private void Write(object outputFileName)
         {
+            var outputFile = (FileInfo)outputFileName;
             using (FileStream outFile = File.Create(outputFile.FullName))
             {
                 BinaryFormatter binaryFormatter = new BinaryFormatter();
