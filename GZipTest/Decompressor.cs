@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GZipTest
 {
@@ -33,37 +34,33 @@ namespace GZipTest
             }
         }
 
-        public void ParallelDecompress(FileInfo fileToDecompress, FileInfo decompressedFile)
+        private ChunkQueue inputQueue = new ChunkQueue();
+
+        private ChunkQueue outputQueue = new ChunkQueue();
+
+        public void ParallelDecompress(FileInfo fileToDecompress, FileInfo decompressedFile, int numberOfWorkers)
         {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            using (FileStream inputStream = fileToDecompress.OpenRead())
+            this.Read(fileToDecompress);
+        }
+
+        private void Read(FileInfo inputFile)
+        {
+            var formatter = new BinaryFormatter();
+            using (FileStream inputStream = inputFile.OpenRead())
             {
+                while (inputStream.Position < inputStream.Length)
+                {
+                    var chunk = (Chunk)formatter.Deserialize(inputStream);
+                    this.inputQueue.Enqueue(chunk);
+                }
 
-                    // Producer-consumers
-                    // Producer reads file by chunks and saves them to queue.
-                    // Consumers take chunsk from queue and perform compression
-                    var result = new List<Chunk>();
-//                    using (var chunkProducerConsumer = new ChunkQueue(8, CompressionMode.Decompress, result))
-//                    {
-//                        byte[] size = new byte[4];
-//                        //                        inputStream.Read(buffer, 0, 4);
-//                        //                        int sizeOfFirstChunk = BitConverter.ToInt32(buffer, 0);
-//                        //                        buffer = new byte[sizeOfFirstChunk + 4];
-//                        //                        inputStream.Position = 0;
-//                        while (inputStream.Read(size, 0, size.Length) > 0)
-//                        {
-//                            int s = BitConverter.ToInt32(size, 0);
-//                            byte[] data = new byte[s];
-//                            inputStream.Read(data, 0, s);
-//                            chunkProducerConsumer.Enqueue(data);
-//                        }
-//                    }
-
-                WriteOutputFile(decompressedFile, result);
+                this.inputQueue.EnqueueNull();
             }
         }
 
-         private static void WriteOutputFile(FileInfo compressedFile, List<Chunk> result)
+
+
+        private static void WriteOutputFile(FileInfo compressedFile, List<Chunk> result)
         {
             using (FileStream outFile = File.Create(compressedFile.FullName))
             {

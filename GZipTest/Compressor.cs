@@ -71,7 +71,7 @@ namespace GZipTest
                     this.inputQueue.Enqueue(byteChunk);
                 }
 
-                this.inputQueue.Finish();
+                this.inputQueue.EnqueueNull();
             }
         }
 
@@ -93,7 +93,7 @@ namespace GZipTest
                     this.outputQueue.Enqueue(outputChunk);
                 }
             }
-            this.outputQueue.Finish();
+            this.outputQueue.EnqueueNull();
         }
 
         private void Write(object outputFileName)
@@ -101,7 +101,7 @@ namespace GZipTest
             var outputFile = (FileInfo)outputFileName;
             using (FileStream outFile = File.Create(outputFile.FullName))
             {
-                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                var binaryFormatter = new BinaryFormatter();
                 Chunk chunk;
                 while ((chunk = this.outputQueue.Dequeue()) != null)
                 {
