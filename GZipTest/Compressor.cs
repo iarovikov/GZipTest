@@ -67,7 +67,7 @@ namespace GZipTest
                 while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
                     byte[] byteChunk = new byte[numRead];
-                    Buffer.BlockCopy(byteChunk, 0, byteChunk, 0, numRead);
+                    Buffer.BlockCopy(buffer, 0, byteChunk, 0, numRead);
                     this.inputQueue.Enqueue(byteChunk);
                 }
 
