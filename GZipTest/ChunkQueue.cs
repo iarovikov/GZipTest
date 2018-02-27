@@ -14,7 +14,7 @@ namespace GZipTest
 
         private int chunkId;
 
-        public void Finish()
+        public void EnqueueNull()
         {
             lock (this.@lock)
             {
