@@ -34,7 +34,7 @@ namespace GZipTest
             if (string.Equals(command, "decompress", StringComparison.InvariantCultureIgnoreCase))
             {
                 var decompressor = new Decompressor();
-                decompressor.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"));
+                decompressor.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"), 1);
             }
 
             Console.ReadLine();
