@@ -44,11 +44,25 @@ namespace GZipTest
             this.Read(fileToDecompress);
 
             Thread[] workers = new Thread[numberOfWorkers];
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+            int toProcess = numberOfWorkers;
             // Create and start a separate thread for each worker
             for (var i = 0; i < numberOfWorkers; i++)
             {
-                (workers[i] = new Thread(this.DecompressChunk)).Start();
+                (workers[i] = new Thread(()=>
+                    {
+                        this.DecompressChunk();
+                        if (Interlocked.Decrement(ref toProcess) == 0)
+                            resetEvent.Set();
+
+                    })).Start();
             }
+
+            // This is how to close output queue for writing file.
+            // Othewise we somethimes get null queued before real data ends
+            // And in that case not all file was written to disk.
+            resetEvent.WaitOne();
+            this.outputQueue.EnqueueNull();
 
             var writeThread = new Thread(new ParameterizedThreadStart(this.Write));
             writeThread.Start(decompressedFile);
@@ -87,7 +101,6 @@ namespace GZipTest
                     }
                 }
             }
-            this.outputQueue.EnqueueNull();
         }
 
         private void Write(object outputFileName)
@@ -101,6 +114,12 @@ namespace GZipTest
                     outFile.Write(chunk.Data, 0, chunk.Data.Length);
                 }
             }
+
+            Console.WriteLine(
+                "Dempressed {0} to {1} bytes.",
+                outputFile.Name,
+                outputFile.Length);
+            Console.ReadLine();
         }
     }
 }

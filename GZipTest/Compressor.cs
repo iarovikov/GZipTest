@@ -54,7 +54,6 @@ namespace GZipTest
             // Create and start a separate thread for each worker
             for (var i = 0; i < numberOfWorkers; i++)
             {
-                var handle = new EventWaitHandle(false, EventResetMode.ManualReset);
                 (workers[i] = new Thread(()=>
                     {
                         this.CompressChunk();
