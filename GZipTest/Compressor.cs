@@ -73,7 +73,7 @@ namespace GZipTest
             writeThread.Start(compressedFile);
         }
 
-        private void Read(FileInfo inputFile)
+        protected override void Read(FileInfo inputFile)
         {
             byte[] buffer = new byte[BUFFER_SIZE];
             using (FileStream inputStream = inputFile.OpenRead())
@@ -109,7 +109,7 @@ namespace GZipTest
             }
         }
 
-        private void Write(object outputFileName)
+        protected override void Write(object outputFileName)
         {
             var outputFile = (FileInfo)outputFileName;
             using (FileStream outFile = File.Create(outputFile.FullName))

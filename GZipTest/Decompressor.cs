@@ -49,13 +49,13 @@ namespace GZipTest
             // Create and start a separate thread for each worker
             for (var i = 0; i < numberOfWorkers; i++)
             {
-                (workers[i] = new Thread(()=>
-                    {
-                        this.DecompressChunk();
-                        if (Interlocked.Decrement(ref toProcess) == 0)
-                            resetEvent.Set();
-
-                    })).Start();
+                (workers[i] = new Thread(
+                     () =>
+                         {
+                             this.DecompressChunk();
+                             if (Interlocked.Decrement(ref toProcess) == 0)
+                                 resetEvent.Set();
+                         })).Start();
             }
 
             // This is how to close output queue for writing file.
@@ -68,7 +68,7 @@ namespace GZipTest
             writeThread.Start(decompressedFile);
         }
 
-        private void Read(FileInfo inputFile)
+        protected override void Read(FileInfo inputFile)
         {
             var formatter = new BinaryFormatter();
             using (FileStream inputStream = inputFile.OpenRead())
@@ -82,6 +82,7 @@ namespace GZipTest
                 this.inputQueue.EnqueueNull();
             }
         }
+
         private void DecompressChunk()
         {
             Chunk inputChunk;
@@ -103,7 +104,7 @@ namespace GZipTest
             }
         }
 
-        private void Write(object outputFileName)
+        protected override void Write(object outputFileName)
         {
             var outputFile = (FileInfo)outputFileName;
             using (FileStream outFile = File.Create(outputFile.FullName))
@@ -115,10 +116,7 @@ namespace GZipTest
                 }
             }
 
-            Console.WriteLine(
-                "Dempressed {0} to {1} bytes.",
-                outputFile.Name,
-                outputFile.Length);
+            Console.WriteLine("Dempressed {0} to {1} bytes.", outputFile.Name, outputFile.Length);
             Console.ReadLine();
         }
     }

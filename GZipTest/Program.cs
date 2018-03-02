@@ -11,7 +11,7 @@ namespace GZipTest
             //TODO: input parameters validation
             var command = args[0];
             var inputFile = new FileInfo(args[1]);
-            //var ouputFile = new FileInfo(args[2]);
+            var ouputFile = new FileInfo(args[2]);
 
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
