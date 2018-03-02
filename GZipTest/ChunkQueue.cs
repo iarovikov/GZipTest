@@ -16,9 +16,7 @@ namespace GZipTest
 
         public void EnqueueNull()
         {
-
-                this.Enqueue((Chunk)null);
-
+            this.Enqueue((Chunk)null);
         }
 
         public void Enqueue(byte[] byteChunk)
@@ -54,10 +52,16 @@ namespace GZipTest
             {
                 while (this.chunkQueue.Count == 0)
                 {
+                    if (this.chunkId == 0)
+                    {
+                        return null;
+                    }
+
                     Monitor.Wait(this.@lock);
                 }
 
                 var chunk = this.chunkQueue.Dequeue();
+                this.chunkId--;
                 return chunk;
             }
         }
