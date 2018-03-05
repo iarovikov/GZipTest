@@ -10,8 +10,18 @@ namespace GZipTest
     {
         protected const int BUFFER_SIZE = 32 * 1024;
 
-        protected abstract void Read(FileInfo inputFile);
-        protected abstract void Write(object outputFile);
-    }
+        protected ChunkQueue inputQueue;
 
+        protected ChunkQueue outputQueue;
+
+        protected abstract void Read(FileInfo inputFile);
+
+        protected abstract void Write(object outputFile);
+
+        protected GZipWorker()
+        {
+            this.inputQueue = new ChunkQueue();
+            this.outputQueue = new ChunkQueue();
+        }
+    }
 }

@@ -10,37 +10,13 @@ namespace GZipTest
 {
     public class Decompressor : GZipWorker, IDecompressor
     {
-        public void Decompress(FileInfo fileToDecompress, FileInfo decompressedFile)
-        {
-            using (FileStream inputStream = fileToDecompress.OpenRead())
-            {
-                using (FileStream outFile = File.Create(decompressedFile.FullName))
-                {
-                    using (var gZipStream = new GZipStream(outFile, CompressionMode.Decompress))
-                    {
-                        byte[] buffer = new byte[BUFFER_SIZE];
-                        int numRead;
-                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            gZipStream.Write(buffer, 0, numRead);
-                        }
-
-                        Console.WriteLine(
-                            "Decompressed {0} from {1} to {2} bytes.",
-                            fileToDecompress.Name,
-                            fileToDecompress.Length,
-                            outFile.Length);
-                    }
-                }
-            }
-        }
-
-        private ChunkQueue inputQueue = new ChunkQueue();
-
-        private ChunkQueue outputQueue = new ChunkQueue();
-
         public void ParallelDecompress(FileInfo fileToDecompress, FileInfo decompressedFile, int numberOfWorkers)
         {
+            if (!fileToDecompress.Exists)
+            {
+                throw new FileNotFoundException("The file was not found.", fileToDecompress.FullName);
+            }
+
             this.Read(fileToDecompress);
 
             Thread[] workers = new Thread[numberOfWorkers];
@@ -116,8 +92,37 @@ namespace GZipTest
                 }
             }
 
-            Console.WriteLine("Dempressed {0} to {1} bytes.", outputFile.Name, outputFile.Length);
+            Console.WriteLine("File {0} created with {1} bytes length.", outputFile.Name, outputFile.Length);
             Console.ReadLine();
         }
+
+        #region SingleThreaded
+
+        public void Decompress(FileInfo fileToDecompress, FileInfo decompressedFile)
+        {
+            using (FileStream inputStream = fileToDecompress.OpenRead())
+            {
+                using (FileStream outFile = File.Create(decompressedFile.FullName))
+                {
+                    using (var gZipStream = new GZipStream(outFile, CompressionMode.Decompress))
+                    {
+                        byte[] buffer = new byte[BUFFER_SIZE];
+                        int numRead;
+                        while ((numRead = inputStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            gZipStream.Write(buffer, 0, numRead);
+                        }
+
+                        Console.WriteLine(
+                            "Decompressed {0} from {1} to {2} bytes.",
+                            fileToDecompress.Name,
+                            fileToDecompress.Length,
+                            outFile.Length);
+                    }
+                }
+            }
+        }
+
+        #endregion
     }
 }

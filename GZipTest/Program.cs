@@ -8,7 +8,11 @@ namespace GZipTest
     {
         public static void Main(string[] args)
         {
-            //TODO: input parameters validation
+            if (args.Length < 3)
+            {
+                Console.WriteLine("The format of the arguments should be: [command (compress/decompress)] [source file name] [destination file name]");
+                return;
+            }
             var command = args[0];
             var inputFile = new FileInfo(args[1]);
             var ouputFile = new FileInfo(args[2]);
@@ -16,24 +20,19 @@ namespace GZipTest
             if (string.Equals(command, "compress", StringComparison.InvariantCultureIgnoreCase))
             {
                 var compressor = new Compressor();
-                compressor.ParallelCompress(inputFile, new FileInfo("compress.gz"), 2);
+                compressor.ParallelCompress(inputFile, ouputFile, 2);
             }
-            if (string.Equals(command, "decompress", StringComparison.InvariantCultureIgnoreCase))
+            else if (string.Equals(command, "decompress", StringComparison.InvariantCultureIgnoreCase))
             {
                 var decompressor = new Decompressor();
-                decompressor.ParallelDecompress(new FileInfo("compress.gz"), new FileInfo("uncompressed.txt"), 2);
+                decompressor.ParallelDecompress(inputFile, ouputFile, 2);
             }
-
-            Console.ReadLine();
-        }
-
-        private static void ValidateFileToCompress(FileInfo fileToCompress)
-        {
-            if ((File.GetAttributes(fileToCompress.FullName) & FileAttributes.Hidden) == FileAttributes.Hidden
-                || fileToCompress.Extension == ".gz")
+            else
             {
-                throw new InvalidOperationException("File is hidden or already compressed");
+                Console.WriteLine("Command is not recongized, please enter command 'compress' or 'decompress'.");
+                return;
             }
+            Console.ReadLine();
         }
     }
 }
