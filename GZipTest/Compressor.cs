@@ -14,7 +14,8 @@ namespace GZipTest
         {
             if (!fileToCompress.Exists)
             {
-                throw new FileNotFoundException("The file was not found.", fileToCompress.FullName);
+                Console.WriteLine("Source file does not exist. Please enter a valid file name.");
+                return;
             }
 
             this.Read(fileToCompress);
